@@ -1,0 +1,17 @@
+[
+  {"q": "How many days of annual leave do employees get per year?", "role": "employee", "doc": "Leave Policy", "keywords": ["20"]},
+  {"q": "How many unused leave days can I carry over?", "role": "employee", "doc": "Leave Policy", "keywords": ["5"]},
+  {"q": "How far in advance must I request leave longer than two days?", "role": "employee", "doc": "Leave Policy", "keywords": ["5 working days"]},
+  {"q": "When do I need a medical certificate for sick leave?", "role": "employee", "doc": "Leave Policy", "keywords": ["2 consecutive"]},
+  {"q": "How long is paternity leave?", "role": "employee", "doc": "Leave Policy", "keywords": ["4 weeks"]},
+  {"q": "What are the steps to request a laptop?", "role": "employee", "doc": "Laptop Request Procedure", "keywords": ["service desk"]},
+  {"q": "How much RAM does the developer laptop have?", "role": "employee", "doc": "Laptop Request Procedure", "keywords": ["32"]},
+  {"q": "What should I do if my laptop is stolen?", "role": "employee", "doc": "Laptop Request Procedure", "keywords": ["24 hours"]},
+  {"q": "How many days a week do we work in the office?", "role": "employee", "doc": "Employee Handbook", "keywords": ["3 days"]},
+  {"q": "How big is the yearly learning budget?", "role": "employee", "doc": "Employee Handbook", "keywords": ["1,000"]},
+  {"q": "In which months are performance reviews held?", "role": "employee", "doc": "Employee Handbook", "keywords": ["june"]},
+  {"q": "What is the salary range for band E1?", "role": "admin", "doc": "Executive Compensation Bands", "keywords": ["180,000"]},
+  {"q": "What is the salary range for band E1?", "role": "employee", "answerable": false},
+  {"q": "What dental insurance coverage does the company offer?", "role": "employee", "answerable": false},
+  {"q": "Who is the CEO of the company?", "role": "employee", "answerable": false}
+]
