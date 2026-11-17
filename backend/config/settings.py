@@ -103,7 +103,10 @@ SIMPLE_JWT = {
 }
 
 # ---- AI configuration -------------------------------------------------------
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+# Works with any OpenAI-compatible provider. For Gemini set OPENAI_BASE_URL to
+# https://generativelanguage.googleapis.com/v1beta/openai/ and put the Gemini key in OPENAI_API_KEY.
+OPENAI_API_KEY = "".join(os.getenv("OPENAI_API_KEY", "").split())  # drops stray spaces/newlines
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "").strip() or None
 CHAT_MODEL = os.getenv("CHAT_MODEL", "gpt-4o-mini")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 EMBEDDING_DIM = 1536  # matches text-embedding-3-small; changing it needs a model field + migration change

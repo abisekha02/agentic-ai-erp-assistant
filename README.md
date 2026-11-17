@@ -63,6 +63,13 @@ Try as Priya: *"What is the leave policy?"*, *"How many annual leave days do I h
 
 No API key? Set `FAKE_AI=1` to explore the UI with a deterministic offline mode. Answers are crude there; it exists for tests.
 
+## Using Gemini's free tier instead of OpenAI
+OpenAI's API has no free tier. Any OpenAI-compatible provider works: set `OPENAI_BASE_URL`, `OPENAI_API_KEY`,
+`CHAT_MODEL` and `EMBEDDING_MODEL` (see `.env.example`). Embeddings are requested at 1536 dimensions to match the
+database column. **Switching embedding models requires re-indexing**: delete and re-upload documents (or Reprocess),
+because vectors from different models are not comparable. Free tiers may use your prompts for model training, so
+only use them with non-confidential demo documents.
+
 ## Tests and evaluation
 
 ```bash
