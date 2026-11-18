@@ -19,22 +19,45 @@ export default function MessageView({ msg, busy, onFeedback, onDecide }: Props) 
     );
   }
 
-  const parts = msg.content.split(/(\[\d+\])/g).map((part, i) => {
-    const m = /^\[(\d+)\]$/.exec(part);
-    if (!m) return <span key={i}>{part}</span>;
-    const n = Number(m[1]);
-    const known = msg.sources.some((s) => s.ref === n);
-    return known ? (
-      <button key={i} onClick={() => setActive(active === n ? null : n)} aria-label={`Show source ${n}`}
-        className={`mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm px-1 font-sans text-[11px] font-semibold align-baseline ${active === n ? "bg-slip text-white" : "bg-slip-wash text-slip hover:bg-slip-edge"}`}>
-        {n}
-      </button>
-    ) : null;
-  });
+  // Renders **bold**, "- " bullet lists and clickable [n] citation markers.
+  const inline = (text: string, key: string) =>
+    text.split(/(\*\*[^*]+\*\*|\[\d+\])/g).map((part, i) => {
+      if (/^\*\*[^*]+\*\*$/.test(part)) return <strong key={`${key}${i}`}>{part.slice(2, -2)}</strong>;
+      const m = /^\[(\d+)\]$/.exec(part);
+      if (!m) return <span key={`${key}${i}`}>{part}</span>;
+      const n = Number(m[1]);
+      if (!msg.sources.some((s) => s.ref === n)) return null;
+      return (
+        <button key={`${key}${i}`} onClick={() => setActive(active === n ? null : n)} aria-label={`Show source ${n}`}
+          className={`mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm px-1 font-sans text-[11px] font-semibold align-baseline ${active === n ? "bg-slip text-white" : "bg-slip-wash text-slip hover:bg-slip-edge"}`}>
+          {n}
+        </button>
+      );
+    });
+
+  const blocks: { bullets: boolean; lines: string[] }[] = [];
+  for (const raw of msg.content.split("\n")) {
+    const line = raw.trim();
+    if (!line) continue;
+    const bullet = /^[-*•]\s+/.test(line);
+    const text = bullet ? line.replace(/^[-*•]\s+/, "") : line;
+    const last = blocks[blocks.length - 1];
+    if (last && last.bullets === bullet && bullet) last.lines.push(text);
+    else blocks.push({ bullets: bullet, lines: [text] });
+  }
+  const parts = blocks.map((blk, bi) =>
+    blk.bullets ? (
+      <ul key={bi} className="my-1 list-disc space-y-1 pl-5">
+        {blk.lines.map((l, li) => <li key={li}>{inline(l, `${bi}-${li}-`)}</li>)}
+      </ul>
+    ) : (
+      <p key={bi} className="my-1">{inline(blk.lines[0], `${bi}-`)}</p>
+    ),
+  );
 
   return (
     <div className="max-w-[46rem]">
-      <p className="whitespace-pre-wrap font-serif text-[17px] leading-relaxed">{parts}</p>
+      <div className="font-serif text-[17px] leading-relaxed">{parts}</div>
 
       {msg.sources.length > 0 && (
         <ul className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Sources">
