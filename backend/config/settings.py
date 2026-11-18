@@ -108,6 +108,10 @@ SIMPLE_JWT = {
 OPENAI_API_KEY = "".join(os.getenv("OPENAI_API_KEY", "").split())  # drops stray spaces/newlines
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "").strip() or None
 CHAT_MODEL = os.getenv("CHAT_MODEL", "gpt-4o-mini")
+# Optional second model tried when the first is overloaded (503) or rate limited (429).
+CHAT_MODEL_FALLBACK = os.getenv("CHAT_MODEL_FALLBACK", "").strip()
+# Give up on a single provider call after this many seconds so the fallback model can take over.
+LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "25"))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 EMBEDDING_DIM = 1536  # matches text-embedding-3-small; changing it needs a model field + migration change
 RETRIEVAL_TOP_K = int(os.getenv("RETRIEVAL_TOP_K", "5"))

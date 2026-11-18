@@ -4,11 +4,13 @@ import json
 import logging
 import math
 import re
+import time
 
 from django.conf import settings
 
 log = logging.getLogger(__name__)
 _client = None
+_TRANSIENT = ("InternalServerError", "RateLimitError", "APIConnectionError", "APITimeoutError")
 
 
 class LLMNotConfigured(RuntimeError):
@@ -23,7 +25,7 @@ def client():
         from openai import OpenAI
 
         _client = OpenAI(
-            api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL, timeout=60, max_retries=3
+            api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL, timeout=settings.LLM_TIMEOUT, max_retries=0
         )
     return _client
 
@@ -53,9 +55,17 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     out: list[list[float]] = []
     for i in range(0, len(texts), 64):
         batch = [t.replace("\n", " ") for t in texts[i : i + 64]]
-        resp = client().embeddings.create(
-            model=settings.EMBEDDING_MODEL, input=batch, dimensions=settings.EMBEDDING_DIM
-        )
+        for attempt in range(3):
+            try:
+                resp = client().embeddings.create(
+                    model=settings.EMBEDDING_MODEL, input=batch, dimensions=settings.EMBEDDING_DIM
+                )
+                break
+            except Exception as exc:
+                if exc.__class__.__name__ not in _TRANSIENT or attempt == 2:
+                    raise
+                log.warning("Embedding %s (attempt %d): %s", exc.__class__.__name__, attempt + 1, exc)
+                time.sleep(1.5 * (attempt + 1))
         out.extend(d.embedding for d in resp.data)
     return out
 
@@ -78,19 +88,40 @@ def _parse_json(raw: str) -> dict:
     return {"_raw": raw}
 
 
-def chat_json(system: str, user: str) -> dict:
+def _complete(model: str, system: str, user: str, json_mode: bool):
     kwargs = dict(
-        model=settings.CHAT_MODEL,
+        model=model,
         temperature=0,
         messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
     )
-    try:
-        resp = client().chat.completions.create(response_format={"type": "json_object"}, **kwargs)
-    except Exception as exc:
-        # Some OpenAI-compatible providers reject response_format; the prompts already demand JSON.
-        if exc.__class__.__name__ == "BadRequestError":
-            log.info("Provider rejected response_format, retrying without it")
-            resp = client().chat.completions.create(**kwargs)
-        else:
-            raise
-    return _parse_json(resp.choices[0].message.content or "{}")
+    if json_mode:
+        kwargs["response_format"] = {"type": "json_object"}
+    return client().chat.completions.create(**kwargs)
+
+
+def chat_json(system: str, user: str) -> dict:
+    """Try the main model, then the fallback model, retrying briefly on overload / rate limits."""
+    models = [m for m in (settings.CHAT_MODEL, settings.CHAT_MODEL_FALLBACK) if m]
+    json_mode = True
+    last_exc: Exception | None = None
+    for model in models:
+        for attempt in range(2):
+            try:
+                try:
+                    resp = _complete(model, system, user, json_mode)
+                except Exception as exc:
+                    # Some providers reject response_format; the prompts already demand JSON.
+                    if exc.__class__.__name__ == "BadRequestError" and json_mode:
+                        log.info("Provider rejected response_format, retrying without it")
+                        json_mode = False
+                        resp = _complete(model, system, user, json_mode)
+                    else:
+                        raise
+                return _parse_json(resp.choices[0].message.content or "{}")
+            except Exception as exc:
+                last_exc = exc
+                if exc.__class__.__name__ not in _TRANSIENT:
+                    raise
+                log.warning("%s failed on %s (attempt %d): %s", exc.__class__.__name__, model, attempt + 1, exc)
+                time.sleep(1.5 * (attempt + 1))
+    raise last_exc  # type: ignore[misc]
