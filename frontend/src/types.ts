@@ -19,3 +19,15 @@ export interface Doc {
   status: "processing" | "ready" | "failed"; error: string; page_count: number; chunk_count: number;
   uploaded_by: string | null; created_at: string;
 }
+
+export interface Stats {
+  documents: { total: number; ready: number; admin_only: number };
+  conversations: number;
+  questions_7d: number; questions_change_pct: number | null;
+  not_found_rate: number | null; questions_total: number;
+  helpful_rate: number | null; rated: number;
+  avg_latency_s: number | null; leave_requests: number;
+  daily: { date: string; count: number }[];
+  top_documents: { document: string; count: number }[];
+  downvoted: { id: number; user: string; question: string; answer: string; comment: string }[];
+}

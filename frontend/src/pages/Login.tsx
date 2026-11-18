@@ -22,40 +22,56 @@ export default function Login() {
     } finally { setBusy(false); }
   };
 
-  const field = "w-full rounded border border-rule bg-white px-3 py-2 text-sm";
+  const field = "w-full rounded-xl border border-rule bg-side px-3.5 py-2.5 text-[15px]";
   return (
-    <main className="grid min-h-screen place-items-center px-4">
-      <div className="w-full max-w-sm">
-        <h1 className="font-serif text-3xl font-semibold leading-tight">Northwind Knowledge Assistant</h1>
-        <p className="mt-2 text-sm text-muted">Ask about company policy. Every answer shows the page it came from.</p>
-        <form onSubmit={submit} className="mt-6 space-y-3 rounded-lg border border-rule bg-white p-5">
-          <label className="block text-sm font-medium">Username
-            <input className={`${field} mt-1`} value={f.username} onChange={set("username")} required autoComplete="username" />
-          </label>
-          {mode === "register" && (
-            <>
-              <label className="block text-sm font-medium">Name
-                <input className={`${field} mt-1`} value={f.first_name} onChange={set("first_name")} />
-              </label>
-              <label className="block text-sm font-medium">Work email
-                <input type="email" className={`${field} mt-1`} value={f.email} onChange={set("email")} required />
-              </label>
-            </>
-          )}
-          <label className="block text-sm font-medium">Password
-            <input type="password" className={`${field} mt-1`} value={f.password} onChange={set("password")} required
-              minLength={8} autoComplete={mode === "login" ? "current-password" : "new-password"} />
-          </label>
-          {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-          <button disabled={busy} className="w-full rounded bg-signal px-3 py-2 text-sm font-semibold text-white hover:bg-signal-dark disabled:opacity-60">
-            {busy ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
+    <main className="grid min-h-screen md:grid-cols-[1.1fr_1fr]">
+      <section className="hidden flex-col justify-between p-10 text-white md:flex" style={{ background: "linear-gradient(160deg,#4E6AE6,#3A54CC 60%,#2F44A8)" }}>
+        <div className="flex items-center gap-3">
+          <div className="grid h-9 w-9 place-items-center rounded bg-signal text-base font-bold">N</div>
+          <span className="text-lg font-semibold">Northwind</span>
+        </div>
+        <div>
+          <h1 className="max-w-md text-4xl font-semibold leading-tight">Answers from your company's documents, with the page to prove it.</h1>
+          <ul className="mt-6 space-y-2 text-white/80">
+            <li>Cited answers from policies and procedures</li>
+            <li>Role-based access to confidential documents</li>
+            <li>Leave requests that need your approval first</li>
+          </ul>
+        </div>
+        <p className="text-sm text-white/50">Enterprise Knowledge Assistant</p>
+      </section>
+      <section className="grid place-items-center bg-paper px-4 py-10">
+        <div className="w-full max-w-sm">
+          <h2 className="text-2xl font-semibold">{mode === "login" ? "Sign in" : "Create your account"}</h2>
+          <p className="mt-1 text-sm text-muted">Northwind Knowledge Assistant</p>
+          <form onSubmit={submit} className="mt-6 space-y-3 rounded-2xl bg-white p-6 shadow-card">
+            <label className="block text-sm font-medium">Username
+              <input className={`${field} mt-1`} value={f.username} onChange={set("username")} required autoComplete="username" />
+            </label>
+            {mode === "register" && (
+              <>
+                <label className="block text-sm font-medium">Name
+                  <input className={`${field} mt-1`} value={f.first_name} onChange={set("first_name")} />
+                </label>
+                <label className="block text-sm font-medium">Work email
+                  <input type="email" className={`${field} mt-1`} value={f.email} onChange={set("email")} required />
+                </label>
+              </>
+            )}
+            <label className="block text-sm font-medium">Password
+              <input type="password" className={`${field} mt-1`} value={f.password} onChange={set("password")} required
+                minLength={8} autoComplete={mode === "login" ? "current-password" : "new-password"} />
+            </label>
+            {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+            <button disabled={busy} className="w-full rounded-xl bg-signal px-3 py-3 text-[15px] font-semibold text-white hover:bg-signal-dark disabled:opacity-60">
+              {busy ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
+            </button>
+          </form>
+          <button className="mt-4 text-sm font-medium text-signal hover:underline" onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}>
+            {mode === "login" ? "Create an employee account" : "I already have an account"}
           </button>
-        </form>
-        <button className="mt-4 text-sm text-signal underline" onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}>
-          {mode === "login" ? "Create an employee account" : "I already have an account"}
-        </button>
-        <p className="mt-6 text-xs text-muted">Demo: priya / Employee@12345 (employee), admin / Admin@12345 (admin)</p>
-      </div>
+        </div>
+      </section>
     </main>
   );
 }

@@ -126,3 +126,18 @@ class AssistantTests(APITestCase):
         titles = {d["title"] for d in self.client.get("/api/documents/").json()}
         self.assertIn("Executive Compensation Bands", titles)
         # restore so other tests are unaffected (TestCase rolls back anyway)
+
+    def test_stats_admin_only_and_shape(self):
+        self.ask(self.emp, "How many days of annual leave do employees get?")
+        self.client.force_authenticate(self.emp)
+        self.assertEqual(self.client.get("/api/chat/stats/").status_code, 403)
+        self.client.force_authenticate(self.admin)
+        r = self.client.get("/api/chat/stats/")
+        self.assertEqual(r.status_code, 200, r.content)
+        d = r.json()
+        self.assertEqual(d["documents"]["total"], 4)
+        self.assertEqual(d["documents"]["admin_only"], 1)
+        self.assertEqual(len(d["daily"]), 14)
+        self.assertEqual(d["daily"][-1]["count"], 1)
+        self.assertEqual(d["questions_7d"], 1)
+        self.assertEqual(d["top_documents"][0]["document"], "Leave Policy")

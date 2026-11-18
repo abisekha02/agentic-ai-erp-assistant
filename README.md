@@ -74,7 +74,7 @@ only use them with non-confidential demo documents.
 
 ```bash
 cd backend
-python manage.py test chat --noinput                 # 12 tests, needs Postgres + pgvector
+python manage.py test chat --noinput                 # 13 tests, needs Postgres + pgvector
 python manage.py evaluate_rag --no-llm               # retrieval only (cheap)
 python manage.py evaluate_rag                        # retrieval + answer correctness + refusal accuracy
 ```
@@ -93,5 +93,5 @@ OpenAI keys and record your numbers here**, then tune `CHUNK_TOKENS`, `RETRIEVAL
 - Ingestion runs inside the upload request (fine for small files; move to a task queue for big ones). Scanned PDFs need OCR.
 - Retrieval is vector-only; add keyword (BM25) hybrid search and a reranker if the evaluation shows misses.
 - Tokens are kept in `localStorage` for simplicity; use httpOnly cookies for production.
-- No analytics dashboard yet; `Message.meta` and `Message.feedback` already hold the data for one.
+- The admin Analytics page (questions per day, not-found rate, helpful rate, most-cited documents, downvoted answers) reads from `GET /api/chat/stats/`.
 - Leave approval by a manager (the next step after "submitted") is not built.

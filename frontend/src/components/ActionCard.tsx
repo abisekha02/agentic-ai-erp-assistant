@@ -16,7 +16,7 @@ export default function ActionCard({ action, busy, onDecide }: {
     ["Working days", String(p.days)], ["Reason", p.reason || "Not given"],
   ];
   return (
-    <section className="mt-3 max-w-md rounded-md border border-slip-edge bg-slip-wash" aria-label="Action awaiting approval">
+    <section className="mt-3 max-w-md rounded-2xl border border-slip-edge bg-slip-wash" aria-label="Action awaiting approval">
       <header className="flex items-center justify-between border-b border-slip-edge px-4 py-2">
         <h3 className="text-sm font-semibold text-slip">Leave request</h3>
         <span className="text-xs font-medium text-slip">{LABEL[action.status]}</span>

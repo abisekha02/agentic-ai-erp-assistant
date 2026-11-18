@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./auth";
 import Admin from "./pages/Admin";
+import Analytics from "./pages/Analytics";
 import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 
@@ -18,6 +19,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<Guard><Chat /></Guard>} />
+      <Route path="/analytics" element={<Guard admin><Analytics /></Guard>} />
       <Route path="/admin" element={<Guard admin><Admin /></Guard>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
