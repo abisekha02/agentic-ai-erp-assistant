@@ -4,4 +4,15 @@
 
 body { @apply bg-paper text-ink font-sans antialiased; }
 :focus-visible { outline: 2px solid #4E6AE6; outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes dot { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@keyframes hide { to { opacity: 0; visibility: hidden; } }
+@keyframes drift { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.anim-in { opacity: 0; animation: fadeUp .55s ease-out forwards; }
+.anim-float { animation: floaty 5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+  .anim-in { opacity: 1 !important; }
+  .typing { display: none; }
+}
