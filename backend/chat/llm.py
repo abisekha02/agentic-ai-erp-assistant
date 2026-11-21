@@ -88,40 +88,47 @@ def _parse_json(raw: str) -> dict:
     return {"_raw": raw}
 
 
-def _complete(model: str, system: str, user: str, json_mode: bool):
-    kwargs = dict(
-        model=model,
-        temperature=0,
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-    )
+def _complete(model: str, system: str, user: str, json_mode: bool, use_temperature: bool = True):
+    kwargs = dict(model=model, messages=[{"role": "system", "content": system}, {"role": "user", "content": user}])
+    if use_temperature:
+        kwargs["temperature"] = 0
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
     return client().chat.completions.create(**kwargs)
 
 
+# Newer providers/models reject some optional parameters; fall back to simpler requests in this order.
+_OPTION_STEPS = [(True, True), (False, True), (False, False)]  # (json_mode, use_temperature)
+
+
 def chat_json(system: str, user: str) -> dict:
-    """Try the main model, then the fallback model, retrying briefly on overload / rate limits."""
+    """Try the main model, then the fallback. Retries briefly on overload/rate limits, drops optional
+    parameters a model rejects (400), and skips to the next model if one is unavailable (404)."""
     models = [m for m in (settings.CHAT_MODEL, settings.CHAT_MODEL_FALLBACK) if m]
-    json_mode = True
     last_exc: Exception | None = None
+    step = 0
     for model in models:
         for attempt in range(2):
             try:
-                try:
-                    resp = _complete(model, system, user, json_mode)
-                except Exception as exc:
-                    # Some providers reject response_format; the prompts already demand JSON.
-                    if exc.__class__.__name__ == "BadRequestError" and json_mode:
-                        log.info("Provider rejected response_format, retrying without it")
-                        json_mode = False
-                        resp = _complete(model, system, user, json_mode)
-                    else:
+                while True:
+                    json_mode, use_temp = _OPTION_STEPS[step]
+                    try:
+                        resp = _complete(model, system, user, json_mode, use_temp)
+                        return _parse_json(resp.choices[0].message.content or "{}")
+                    except Exception as exc:
+                        if exc.__class__.__name__ == "BadRequestError" and step < len(_OPTION_STEPS) - 1:
+                            step += 1
+                            log.info("%s rejected a request option, retrying with %s", model, _OPTION_STEPS[step])
+                            continue
                         raise
-                return _parse_json(resp.choices[0].message.content or "{}")
             except Exception as exc:
                 last_exc = exc
-                if exc.__class__.__name__ not in _TRANSIENT:
+                name = exc.__class__.__name__
+                if name == "NotFoundError":
+                    log.warning("Model %s is not available for this key (404); trying the next model", model)
+                    break  # no point retrying this model
+                if name not in _TRANSIENT:
                     raise
-                log.warning("%s failed on %s (attempt %d): %s", exc.__class__.__name__, model, attempt + 1, exc)
+                log.warning("%s failed on %s (attempt %d): %s", name, model, attempt + 1, exc)
                 time.sleep(1.5 * (attempt + 1))
     raise last_exc  # type: ignore[misc]
