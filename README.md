@@ -37,6 +37,7 @@ multiple workers.
 - **Idempotent approvals** - row-locked, status-checked; approving twice creates one request. Users can only decide their own actions.
 - **Roles** - self-registration always creates an employee; admins are created via `createsuperuser`/Django admin/seed.
 - **Citations** - PDF chunks cite `Page N`; DOCX has no stable pages, so chunks cite the nearest heading (`Section: ...`).
+- **Leave approval workflow** - AI proposes -> employee confirms -> admin approves/rejects on the Leave Approvals page. Admins cannot decide their own requests, decisions are row-locked and can't be repeated, rejected days are released, and employees see status on My Leave.
 - **Observability** - every assistant message stores intent, graph trace, latency, and retrieved chunk scores; users give thumbs up/down.
 
 ## Run it locally
@@ -74,7 +75,7 @@ only use them with non-confidential demo documents.
 
 ```bash
 cd backend
-python manage.py test chat --noinput                 # 13 tests, needs Postgres + pgvector
+python manage.py test chat --noinput                 # 20 tests, needs Postgres + pgvector
 python manage.py evaluate_rag --no-llm               # retrieval only (cheap)
 python manage.py evaluate_rag                        # retrieval + answer correctness + refusal accuracy
 ```
@@ -94,4 +95,4 @@ OpenAI keys and record your numbers here**, then tune `CHUNK_TOKENS`, `RETRIEVAL
 - Retrieval is vector-only; add keyword (BM25) hybrid search and a reranker if the evaluation shows misses.
 - Tokens are kept in `localStorage` for simplicity; use httpOnly cookies for production.
 - The admin Analytics page (questions per day, not-found rate, helpful rate, most-cited documents, downvoted answers) reads from `GET /api/chat/stats/`.
-- Leave approval by a manager (the next step after "submitted") is not built.
+- Approvals are done by any admin; there is no org chart / manager hierarchy yet.

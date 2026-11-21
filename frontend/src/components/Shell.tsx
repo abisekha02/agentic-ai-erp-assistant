@@ -11,7 +11,7 @@ function Section({ icon, label }: { icon: "grid" | "layers"; label: string }) {
   );
 }
 
-function Item({ to, label, icon, onClick }: { to: string; label: string; icon: "bars" | "chat" | "file"; onClick?: () => void }) {
+function Item({ to, label, icon, onClick }: { to: string; label: string; icon: "bars" | "chat" | "file" | "calendar" | "check"; onClick?: () => void }) {
   return (
     <NavLink to={to} end onClick={onClick}
       className={({ isActive }) =>
@@ -75,7 +75,13 @@ export default function Shell({ children, fill = false }: { children: ReactNode;
               )}
               <Section icon="layers" label="Apps" />
               <Item to="/" label="Assistant" icon="chat" onClick={closeOnMobile} />
-              {user?.role === "admin" && <Item to="/admin" label="Documents" icon="file" onClick={closeOnMobile} />}
+              <Item to="/leave" label="My Leave" icon="calendar" onClick={closeOnMobile} />
+              {user?.role === "admin" && (
+                <>
+                  <Item to="/approvals" label="Leave Approvals" icon="check" onClick={closeOnMobile} />
+                  <Item to="/admin" label="Documents" icon="file" onClick={closeOnMobile} />
+                </>
+              )}
             </nav>
           </>
         )}

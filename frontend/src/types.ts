@@ -31,3 +31,10 @@ export interface Stats {
   top_documents: { document: string; count: number }[];
   downvoted: { id: number; user: string; question: string; answer: string; comment: string }[];
 }
+
+export interface LeaveReq {
+  id: number; employee: string; employee_name: string; leave_type: string; start_date: string; end_date: string;
+  days: number; reason: string; status: "submitted" | "approved" | "rejected"; created_at: string;
+  decided_by: string | null; decided_at: string | null; decision_note: string;
+}
+export interface Balance { annual_total: number; taken: number; pending: number; remaining: number }

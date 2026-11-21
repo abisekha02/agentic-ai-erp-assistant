@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./auth";
 import Admin from "./pages/Admin";
 import Analytics from "./pages/Analytics";
+import Approvals from "./pages/Approvals";
+import MyLeave from "./pages/MyLeave";
 import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 
@@ -20,6 +22,8 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<Guard><Chat /></Guard>} />
       <Route path="/analytics" element={<Guard admin><Analytics /></Guard>} />
+      <Route path="/leave" element={<Guard><MyLeave /></Guard>} />
+      <Route path="/approvals" element={<Guard admin><Approvals /></Guard>} />
       <Route path="/admin" element={<Guard admin><Admin /></Guard>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -18,16 +18,17 @@ def working_days(start: date, end: date) -> int:
 
 
 def get_balance(user) -> dict:
+    """Annual leave: total - already taken - approved - awaiting approval. Rejected requests release their days."""
     bal, _ = LeaveBalance.objects.get_or_create(user=user)
-    pending = (
-        LeaveRequest.objects.filter(user=user, leave_type="annual", status="submitted").aggregate(s=Sum("days"))["s"]
-        or 0
-    )
+    annual = LeaveRequest.objects.filter(user=user, leave_type="annual")
+    pending = annual.filter(status="submitted").aggregate(s=Sum("days"))["s"] or 0
+    approved = annual.filter(status="approved").aggregate(s=Sum("days"))["s"] or 0
+    taken = bal.annual_taken + approved
     return {
         "annual_total": bal.annual_total,
-        "taken": bal.annual_taken,
+        "taken": taken,
         "pending": pending,
-        "remaining": bal.annual_total - bal.annual_taken - pending,
+        "remaining": bal.annual_total - taken - pending,
     }
 
 
